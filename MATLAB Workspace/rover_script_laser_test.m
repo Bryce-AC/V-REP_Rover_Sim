@@ -17,6 +17,8 @@
 %}
 
 %---------------------------------SCRIPT----------------------------------%
+clear all
+
 %constructs remote api object
 vrep=remApi('remoteApi');
 %destroy's any current connections to v-rep simulation
@@ -36,7 +38,7 @@ if (clientID>-1)
     [returnCode,motor_1]=vrep.simxGetObjectHandle(clientID,'motor_1',vrep.simx_opmode_oneshot_wait);
     [returnCode,motor_2]=vrep.simxGetObjectHandle(clientID,'motor_2',vrep.simx_opmode_oneshot_wait);
     
-    %defining sensor handles
+    %defining sensor handle
     [returnCode,laser_sensor]=vrep.simxGetObjectHandle(clientID,'laser_sensor',vrep.simx_opmode_oneshot_wait);
     
     %syntax
@@ -50,61 +52,55 @@ if (clientID>-1)
     %read laser sensor
     [returnCode]=vrep.simxReadProximitySensor(clientID,laser_sensor,vrep.simx_opmode_oneshot_wait);
     [returnCode,detectionState, detectedPoint,~,~]=vrep.simxReadProximitySensor(clientID,laser_sensor,vrep.simx_opmode_streaming); %start measuring
-    %destroy connection to v-rep simulation
     
-    %User Defined Properties 
+    %read orientation
+    [returnCode] = vrep.simxGetObjectQuaternion(clientID,laser_sensor,-1,vrep.simx_opmode_streaming);
+    [returnCode, quaternions] = vrep.simxGetObjectQuaternion(clientID,laser_sensor,-1,vrep.simx_opmode_buffer);
+
+
+    
+%User Defined Properties 
 plotTitle = 'Laser Sensor';  % plot title
-xLabel = 'Elapsed Time (s)';     % x-axis label
-yLabel = 'Distance (m)';      % y-axis label
-legend1 = 'Temperature Sensor 1'
-%legend2 = 'Temperature Sensor 2'
-%legend3 = 'Temperature Sensor 3'
-yMax  = 5;                           %y Maximum Value
-yMin  = 0;                       %y minimum Value
-plotGrid = 'on';                 % 'off' to turn off grid
-min = 0;                         % set y-min
-max = 5;                        % set y-max
 delay = .01;                     % make sure sample faster than resolution 
 %Define Function Variables
-time = 0;
-data = 0;
-%data1 = 0;
-%data2 = 0;
 count = 0;
 %Set up Plot
-plotGraph = plot(time,data,'-r' )  % every AnalogRead needs to be on its own Plotgraph
+
+theta = -pi/2:pi/2;
+dist = theta.*0;
+
+plotGraph = polarscatter(theta,dist)  % every AnalogRead needs to be on its own Plotgraph
+
+thetalim([-180,180])
+
 hold on                            %hold on makes sure all of the channels are plotted
-%plotGraph1 = plot(time,data1,'-b')
-%plotGraph2 = plot(time, data2,'-g' )
-title(plotTitle,'FontSize',15);
-xlabel(xLabel,'FontSize',15);
-ylabel(yLabel,'FontSize',15);
-%legend(legend1,legend2,legend3)
-axis([yMin yMax min max]);
-grid(plotGrid);
 tic
 while ishandle(plotGraph) %Loop when Plot is Active will run until plot is closed
          [returnCode, detectionState, detectedPoint,~,~] = vrep.simxReadProximitySensor(clientID, laser_sensor, vrep.simx_opmode_buffer);% measurement refresh
-         dat = norm(detectedPoint); %Data from the arduino
-         %dat1 = a.analogRead(2)* 0.48875855327; 
-         %dat2 = a.analogRead(4)* 0.48875855327;       
-         count = count + 1;    
-         time(count) = toc;    
-         data(count) = dat(1);         
-         %data1(count) = dat1(1)
-         %data2(count) = dat2(1)
+         [returnCode, quaternions] = vrep.simxGetObjectQuaternion(clientID,laser_sensor,-1,vrep.simx_opmode_buffer);
+         dist_sample = norm(detectedPoint); %distance data from laser sensor
+         theta_sample = quat2rotm(quaternions)
+         
+         %if (theta_sample < 0)
+         %   theta_sample = abs(theta_sample)+90;
+         %end
+         
+         
+         count = count + 1;  
+         
+         theta(count) = theta_sample;    
+         dist(count) = dist_sample;
          %This is the magic code 
          %Using plot will slow down the sampling time.. At times to over 20
          %seconds per sample!
-         set(plotGraph,'XData',time,'YData',data);
-         %set(plotGraph1,'XData',time,'YData',data1);
-         %set(plotGraph2,'XData',time,'YData',data2);
-          axis([0 time(count) min max]);
-          %Update the graph
-          pause(delay);
-end
+         set(plotGraph,'XData',theta,'YData',dist);
+         %Update the graph
+         refreshdata;
+         pause(0.01);
+         
+  end
     
-    
+    %destroy connection to v-rep simulation
     vrep.simxFinish(-1);
 else
     disp('Failed connecting to remote API server');
