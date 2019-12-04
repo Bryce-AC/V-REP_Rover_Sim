@@ -40,9 +40,9 @@ if (clientID>-1)
     %[returnCode]=vrep.simxSetJointTargetVelocity(clientID,MOTOR_X,TARGET_V,vrep.simx_opmode_blocking);
     
     %setting motor speeds for straight line (units in rad/s)
-    [returnCode]=vrep.simxSetJointTargetVelocity(clientID,motor_0,1.,vrep.simx_opmode_blocking);
-    [returnCode]=vrep.simxSetJointTargetVelocity(clientID,motor_1,5,vrep.simx_opmode_blocking);
-    [returnCode]=vrep.simxSetJointTargetVelocity(clientID,motor_2,-10,vrep.simx_opmode_blocking);    
+    [returnCode]=vrep.simxSetJointTargetVelocity(clientID,motor_0,5,vrep.simx_opmode_blocking);
+    [returnCode]=vrep.simxSetJointTargetVelocity(clientID,motor_1,-5,vrep.simx_opmode_blocking);
+    [returnCode]=vrep.simxSetJointTargetVelocity(clientID,motor_2,1,vrep.simx_opmode_blocking);    
   
     %destroy connection to v-rep simulation
     vrep.simxFinish(-1);
