@@ -45,9 +45,9 @@ if (clientID>-1)
     %[returnCode]=vrep.simxSetJointTargetVelocity(clientID,MOTOR_X,TARGET_V,vrep.simx_opmode_blocking);
     
     %setting motor speeds for straight line (units in rad/s)
-    [returnCode]=vrep.simxSetJointTargetVelocity(clientID,motor_0,1,vrep.simx_opmode_oneshot_wait);
-    [returnCode]=vrep.simxSetJointTargetVelocity(clientID,motor_1,1,vrep.simx_opmode_oneshot_wait);
-    [returnCode]=vrep.simxSetJointTargetVelocity(clientID,motor_2,1,vrep.simx_opmode_oneshot_wait);    
+    [returnCode]=vrep.simxSetJointTargetVelocity(clientID,motor_0,5,vrep.simx_opmode_oneshot_wait);
+    [returnCode]=vrep.simxSetJointTargetVelocity(clientID,motor_1,5,vrep.simx_opmode_oneshot_wait);
+    [returnCode]=vrep.simxSetJointTargetVelocity(clientID,motor_2,5,vrep.simx_opmode_oneshot_wait);    
     
     %read laser sensor
     [returnCode]=vrep.simxReadProximitySensor(clientID,laser_sensor,vrep.simx_opmode_oneshot_wait);
@@ -66,8 +66,9 @@ delay = .01;                     % make sure sample faster than resolution
 count = 0;
 %Set up Plot
 
-theta = -180:180;
-dist = theta.*0;
+theta = 0;
+dist = 0;
+
 figure
 plotGraph = polarplot(theta,dist)  % every AnalogRead needs to be on its own Plotgraph
 
@@ -104,7 +105,7 @@ while ishandle(plotGraph) %Loop when Plot is Active will run until plot is close
          set(plotGraph,'XData',theta,'YData',dist);
          %Update the graph
          refreshdata;
-         pause(0.001);
+         pause(0.01);
   end
     
     %destroy connection to v-rep simulation
